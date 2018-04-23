@@ -12,3 +12,4 @@ phases:
 artifacts:
   files:
     - out.yml
+    - cloudformation-config.json
