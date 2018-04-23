@@ -6,8 +6,9 @@ Parameters:
     Description: Lifx Api Url
     Default: https://api.lifx.com
   LifxToken:
-    Type: String
+    Type: AWS::SSM::Parameter::Value<String>
     Description: Lifx Api Token
+    Default: LifxToken
   LambdaSchedule:
     Type: String
     Description: Cloudwatch Event Rule ScheduleExpression for invoking the lambda function

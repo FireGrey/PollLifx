@@ -1,0 +1,9 @@
+{
+    "Parameters": {
+        "LifxApiUrl": "https://api.lifx.com",
+        "LifxToken": "LifxToken",
+        "LambdaSchedule": "rate(5 minutes)",
+        "ReadCapacity": "1",
+        "WriteCapacity": "2"
+    }
+}
