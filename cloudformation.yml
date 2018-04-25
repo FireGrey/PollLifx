@@ -22,7 +22,7 @@ Parameters:
     Description: Provisioned write throughput for the DynamoDB Table
     Default: 1
 Resources:
-  FunctionRole:
+  SyncStateRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -36,7 +36,7 @@ Resources:
               - sts:AssumeRole
       Path: /
       Policies:
-        - PolicyName: FunctionPolicy
+        - PolicyName: SyncStatePolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -44,19 +44,19 @@ Resources:
                 Action:
                   - dynamodb:describetable
                   - dynamodb:putitem
-                Resource: !GetAtt Table.Arn
+                Resource: !GetAtt State.Arn
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:*
-  Function:
+  SyncState:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: PollLifx::PollLifx.Function::FunctionHandler
-      Role: !GetAtt FunctionRole.Arn
-      Code: ./PollLifx/bin/Release/netcoreapp2.0/PollLifx.zip
+      Handler: PollLifx.SyncState::PollLifx.SyncState.Function::FunctionHandler
+      Role: !GetAtt SyncStateRole.Arn
+      Code: ./PollLifx.SyncState/bin/Release/netcoreapp2.0/PollLifx.SyncState.zip
       MemorySize: 256
       Runtime: dotnetcore2.0
       Timeout: 15
@@ -64,7 +64,7 @@ Resources:
         Variables:
           LifxApiUrl: !Ref LifxApiUrl
           LifxToken: !Ref LifxToken
-          DynamoDbTableName: !Ref Table
+          DynamoDbTableName: !Ref State
   ScheduledRule:
     Type: AWS::Events::Rule
     Properties:
@@ -72,16 +72,16 @@ Resources:
       ScheduleExpression: !Ref LambdaSchedule
       State: ENABLED
       Targets:
-        - Arn: !GetAtt Function.Arn
+        - Arn: !GetAtt SyncState.Arn
           Id: TargetFunction
   ScheduledRuleLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref Function
+      FunctionName: !Ref SyncState
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt ScheduledRule.Arn
-  Table:
+  State:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
@@ -96,7 +96,7 @@ Resources:
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
 Outputs:
-  TableStreamArn:
-    Value: !GetAtt Table.StreamArn
+  StateStreamArn:
+    Value: !GetAtt State.StreamArn
     Export:
-      Name: !Sub "${AWS::StackName}-TableStreamArn"
+      Name: !Sub "${AWS::StackName}-StateStreamArn"

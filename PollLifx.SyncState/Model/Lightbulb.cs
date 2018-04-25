@@ -1,6 +1,6 @@
 using System;
 
-namespace PollLifx.Model
+namespace PollLifx.SyncState.Model
 {
     public class Lightbulb
     {

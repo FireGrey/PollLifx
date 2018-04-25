@@ -1,4 +1,4 @@
-namespace PollLifx.Model
+namespace PollLifx.SyncState.Model
 {
     public class LightbulbLocation
     {
