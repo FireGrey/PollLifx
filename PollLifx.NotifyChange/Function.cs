@@ -51,7 +51,7 @@ namespace PollLifx.NotifyChange
 
                 if (changes.success)
                 {
-                    PublishResponse publishResponse = _snsClient.PublishAsync("topic", changes.message).Result;
+                    PublishResponse publishResponse = _snsClient.PublishAsync(_snsArn, changes.message).Result;
 
                     context.Logger.LogLine($"Sent Message '{changes.message}' with SNS MessageId: {publishResponse.MessageId}");
                 }
