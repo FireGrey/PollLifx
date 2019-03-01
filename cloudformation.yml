@@ -99,7 +99,7 @@ Resources:
       Timeout: 15
       Environment:
         Variables:
-          LifxApiUrl: !Ref SnsTopicArn
+          SnsTopicArn: !Ref SnsTopicArn
   SyncState:
     Type: AWS::Lambda::Function
     Properties:
