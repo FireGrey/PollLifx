@@ -1,9 +1,10 @@
 {
     "Parameters": {
         "LifxApiUrl": "https://api.lifx.com",
-        "LifxToken": "LifxToken",
+        "LifxToken": "/PollLifx/LifxToken",
         "LambdaSchedule": "rate(5 minutes)",
         "ReadCapacity": "1",
+        "SnsTopicArn": "/PollLifx/SnsTopicArn",
         "WriteCapacity": "2"
     }
 }

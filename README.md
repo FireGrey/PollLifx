@@ -4,6 +4,7 @@ PollLifx is a project which keeps an up to date record of the state of some lifx
 
 This project consists of:
 * PollLifx.SyncState - a dotnet core lambda function project which retrieves all lights from the lifx api and stores their state in dynamodb
+* PollLifx.NotifyChange - a dotnet core lambda function project which is triggered by the dynamodb stream and sends a notification for the change
 * cloudformation.yml - a cloudformation template for creating the required aws resources
 
 The lambda function is designed to run as a cron and doesn't accept any input, nor does it return any output. Outside of the resources created by cloudformation, the function requires a valid lifx api key.

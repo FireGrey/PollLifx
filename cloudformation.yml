@@ -8,20 +8,57 @@ Parameters:
   LifxToken:
     Type: AWS::SSM::Parameter::Value<String>
     Description: Lifx Api Token
-    Default: LifxToken
   LambdaSchedule:
     Type: String
     Description: Cloudwatch Event Rule ScheduleExpression for invoking the lambda function
     Default: rate(5 minutes)
   ReadCapacity:
     Type: Number
-    Description: Provisioned read throughput for the DynamoDB Table
+    Description: Provisioned read throughput for the State DynamoDB Table
     Default: 1
+  SnsTopicArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Sns Topic to send change notification to
   WriteCapacity:
     Type: Number
-    Description: Provisioned write throughput for the DynamoDB Table
+    Description: Provisioned write throughput for the State DynamoDB Table
     Default: 1
 Resources:
+  NotifyChangeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: SyncStatePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeStream
+                  - dynamodb:GetRecords
+                  - dynamodb:GetShardIterator
+                  - dynamodb:ListStreams
+                Resource: !GetAtt State.StreamArn
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref SnsTopicArn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
   SyncStateRole:
     Type: AWS::IAM::Role
     Properties:
@@ -51,14 +88,26 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:*
+  NotifyChange:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: PollLifx.NotifyChange::PollLifx.NotifyChange.Function::FunctionHandler
+      Role: !GetAtt NotifyChangeRole.Arn
+      Code: ./PollLifx.NotifyChange/bin/Release/netcoreapp2.1/PollLifx.NotifyChange.zip
+      MemorySize: 256
+      Runtime: dotnetcore2.1
+      Timeout: 15
+      Environment:
+        Variables:
+          LifxApiUrl: !Ref SnsTopicArn
   SyncState:
     Type: AWS::Lambda::Function
     Properties:
       Handler: PollLifx.SyncState::PollLifx.SyncState.Function::FunctionHandler
       Role: !GetAtt SyncStateRole.Arn
-      Code: ./PollLifx.SyncState/bin/Release/netcoreapp2.0/PollLifx.SyncState.zip
+      Code: ./PollLifx.SyncState/bin/Release/netcoreapp2.1/PollLifx.SyncState.zip
       MemorySize: 256
-      Runtime: dotnetcore2.0
+      Runtime: dotnetcore2.1
       Timeout: 15
       Environment:
         Variables:
@@ -95,8 +144,9 @@ Resources:
         WriteCapacityUnits: !Ref WriteCapacity
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
-Outputs:
-  StateStreamArn:
-    Value: !GetAtt State.StreamArn
-    Export:
-      Name: !Sub "${AWS::StackName}-StateStreamArn"
+  StateNotifyChangeMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt State.StreamArn
+      FunctionName: !GetAtt NotifyChange.Arn
+      StartingPosition: LATEST

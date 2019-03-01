@@ -2,8 +2,10 @@ version: 0.2
 phases:
   build:
     commands:
-      - cd $CODEBUILD_SRC_DIR/PollLifx.SyncState
       - dotnet restore
+      - cd $CODEBUILD_SRC_DIR/PollLifx.NotifyChange
+      - dotnet lambda package
+      - cd $CODEBUILD_SRC_DIR/PollLifx.SyncState
       - dotnet lambda package
   post_build:
     commands:

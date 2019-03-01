@@ -1,4 +1,4 @@
-namespace PollLifx.SyncState.Model
+namespace PollLifx.Common.Model
 {
     public class LightbulbGroup
     {

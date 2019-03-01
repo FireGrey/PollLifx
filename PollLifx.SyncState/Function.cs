@@ -9,7 +9,7 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Lambda.Core;
 using Newtonsoft.Json;
-using PollLifx.SyncState.Model;
+using PollLifx.Common.Model;
 
 namespace PollLifx.SyncState
 {
