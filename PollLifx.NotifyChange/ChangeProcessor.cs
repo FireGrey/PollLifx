@@ -19,7 +19,7 @@ namespace PollLifx.NotifyChange
                 changes.Add(newState.connected ? "connected" : "disconnected");
 
             var oldColour = CalculateColour(oldState.color);
-            var newColour = CalculateColour(oldState.color);
+            var newColour = CalculateColour(newState.color);
 
             if (oldColour != newColour)
                 changes.Add($"changed to the colour {newColour}");
