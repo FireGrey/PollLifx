@@ -18,6 +18,12 @@ namespace PollLifx.NotifyChange
             if (oldState.connected != newState.connected)
                 changes.Add(newState.connected ? "connected" : "disconnected");
 
+            var oldColour = CalculateColour(oldState.color);
+            var newColour = CalculateColour(oldState.color);
+
+            if (oldColour != newColour)
+                changes.Add($"changed to the colour {newColour}");
+
             if (!changes.Any())
                 return (false, "");
 
@@ -36,10 +42,29 @@ namespace PollLifx.NotifyChange
                 return changes.SingleOrDefault();
         }
 
-        // TODO
         private string CalculateColour(LightbulbColor lightbulbColor)
         {
-            throw new NotImplementedException();
+            if (lightbulbColor.saturation < 0.2)
+            {
+                return "white";
+            }
+
+            var colours = new Dictionary<double, string>
+            {
+                { 0, "red" },
+                { 36, "orange" },
+                { 60, "yellow" },
+                { 180, "cyan" },
+                { 120, "green" },
+                { 250, "blue" },
+                { 280, "purple" },
+                { 325, "pink" },
+                { 360, "red" },
+            };
+
+            var closestColour = colours.OrderBy(colour => Math.Abs(lightbulbColor.hue - colour.Key)).First();
+
+            return closestColour.Value;
         }
     }
 }
